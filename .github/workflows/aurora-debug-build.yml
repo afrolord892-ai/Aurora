@@ -1,3 +1,4 @@
+ # Trigger note: this workflow also runs when its build definition changes.
 # Personal optimized APK build for the Aurora fork.
 # Uses this runner's Android debug signing key; no upstream private secrets are needed.
 name: Aurora APK (personal debug-signed build)
