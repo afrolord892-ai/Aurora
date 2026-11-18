@@ -1,0 +1,54 @@
+# Personal optimized APK build for the Aurora fork.
+# Uses this runner's Android debug signing key; no upstream private secrets are needed.
+name: Aurora APK (personal debug-signed build)
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+    paths:
+      - ".github/workflows/aurora-debug-build.yml"
+      - "base/**"
+
+permissions:
+  contents: read
+
+jobs:
+  apk:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v7
+
+      - name: Set up Java
+        uses: actions/setup-java@v6
+        with:
+          distribution: temurin
+          java-version: "21"
+          cache: gradle
+
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v4
+        with:
+          packages: "platforms;android-37.0 build-tools;36.0.0"
+
+      - name: Build optimized APK
+        working-directory: base
+        run: |
+          ./gradlew assembleRelease \
+            -PappBeta=true \
+            -PoverDev=true \
+            -PappVersionName=1.0.0 \
+            -PappVersionCode="$((1000 + GITHUB_RUN_NUMBER))"
+          mv app/build/outputs/apk/release/app-release.apk \
+            app/build/outputs/apk/release/Aurora-1.0.0-dev.apk
+
+      - name: Upload APK
+        uses: actions/upload-artifact@v7
+        with:
+          name: Aurora-1.0.0-dev
+          path: base/app/build/outputs/apk/release/Aurora-1.0.0-dev.apk
+          if-no-files-found: error
+          retention-days: 14
